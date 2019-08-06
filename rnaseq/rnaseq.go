@@ -3,9 +3,11 @@ package rnaseq
 import (
 	"errors"
 	"fmt"
+	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"sync"
 )
 
 // GenomeConfig contains information about the genome directory
@@ -62,19 +64,28 @@ type Salmon struct {
 // BuildIndex for algorithm Salmon
 func (sa Salmon) BuildIndex(gc *GenomeConfig) error {
 	fmt.Println("Running Salmon indexing")
+	var wg sync.WaitGroup
+	kmers := [6]string{"21", "23", "25", "27", "29", "31"} // all salmon Ks
 
-	kmers := [6]string{"21", "23", "25", "30", "29", "31"} // all salmon Ks
 	for _, salmonK := range kmers {
-		salmonIdxDir := filepath.Join(gc.BaseDir, fmt.Sprintf("salmon_k%v_idx", salmonK))
-		salmonArgs := []string{
-			"index", "-t", gc.getTXFAFilePath(), "-i", salmonIdxDir, "--type", "quasi", "-k", salmonK,
-		}
-		_, err := exec.Command("salmon", salmonArgs...).Output()
-		if err != nil {
-			return err
-		}
+		wg.Add(1)
+
+		go func(sk string, gc *GenomeConfig, w *sync.WaitGroup) {
+			defer w.Done()
+			salmonIdxDir := filepath.Join(gc.BaseDir, fmt.Sprintf("salmon_k%v_idx", sk))
+			salmonArgs := []string{
+				"index", "-t", gc.getTXFAFilePath(), "-i", salmonIdxDir, "--type", "quasi", "-k", sk,
+			}
+			fmt.Println("Salmon indexing", sk)
+			_, err := exec.Command("salmon", salmonArgs...).Output()
+			if err != nil {
+				log.Fatalln(err)
+			}
+			fmt.Println("Finished indexing", sk)
+		}(salmonK, gc, &wg)
 	}
 
+	wg.Wait()
 	fmt.Println("Finished indexing")
 	return nil
 }

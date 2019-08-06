@@ -82,6 +82,9 @@ func main() {
 			go startDownloadWorker(fileChannel, fc, resDir, &wg)
 		}
 	} else {
+		gc := rnaseq.GenomeConfig{BaseDir: resDir, FAFileName: faFileName, GTFFileName: gtfFileName, TXFAFileName: txfaFileName}
+
+		rnaseq.BuildRNASeqIndex("salmon", &gc)
 		log.Fatal(err)
 	}
 
