@@ -3,7 +3,6 @@ package rnaseq
 import (
 	"errors"
 	"fmt"
-	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -67,26 +66,13 @@ func (sa Salmon) BuildIndex(gc *GenomeConfig) error {
 	var wg sync.WaitGroup
 	kmers := [6]string{"21", "23", "25", "27", "29", "31"} // all salmon Ks
 
-	for _, salmonK := range kmers {
+	for _, kmer := range kmers {
 		wg.Add(1)
-
-		go func(sk string, gc *GenomeConfig, w *sync.WaitGroup) {
-			defer w.Done()
-			salmonIdxDir := filepath.Join(gc.BaseDir, fmt.Sprintf("salmon_k%v_idx", sk))
-			salmonArgs := []string{
-				"index", "-t", gc.getTXFAFilePath(), "-i", salmonIdxDir, "--type", "quasi", "-k", sk,
-			}
-			fmt.Println("Salmon indexing", sk)
-			_, err := exec.Command("salmon", salmonArgs...).Output()
-			if err != nil {
-				log.Fatalln(err)
-			}
-			fmt.Println("Finished indexing", sk)
-		}(salmonK, gc, &wg)
+		go buildSalmonIndexByKmer(kmer, gc, &wg)
 	}
 
 	wg.Wait()
-	fmt.Println("Finished indexing")
+	fmt.Println("Finished Salmon indexing")
 	return nil
 }
 
@@ -103,4 +89,24 @@ func BuildRNASeqIndex(algorithm string, gc *GenomeConfig) error {
 	}
 
 	return seqAlgorithm.BuildIndex(gc)
+}
+
+// BuildSalmonIndexByKmer builds index for a specific kmer
+func BuildSalmonIndexByKmer(kmer string, gc *GenomeConfig) error {
+	salmonIdxDir := filepath.Join(gc.BaseDir, fmt.Sprintf("salmon_k%v_idx", kmer))
+	salmonArgs := []string{
+		"index", "-t", gc.getTXFAFilePath(), "-i", salmonIdxDir, "--type", "quasi", "-k", kmer,
+	}
+	fmt.Printf("Salmon indexing k%v\n", kmer)
+	_, err := exec.Command("salmon", salmonArgs...).Output()
+	if err != nil {
+		return err
+	}
+	fmt.Println("Finished indexing", kmer)
+	return nil
+}
+
+func buildSalmonIndexByKmer(kmer string, gc *GenomeConfig, wg *sync.WaitGroup) error {
+	defer wg.Done()
+	return BuildSalmonIndexByKmer(kmer, gc)
 }
