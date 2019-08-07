@@ -3,10 +3,14 @@ package rnaseq
 import (
 	"errors"
 	"fmt"
+	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"sync"
+
+	"ahub.mbni.org/fileutil"
 )
 
 // GenomeConfig contains information about the genome directory
@@ -40,7 +44,7 @@ func (st STAR) BuildIndex(gc *GenomeConfig) error {
 	starIdxDir := filepath.Join(gc.BaseDir, "star_idx")
 	if err := os.Mkdir(starIdxDir, os.ModePerm); err == nil {
 		starArgs := []string{
-			"--runThreadN", "16", "--runMode", "genomeGenerate", "--genomeDir", starIdxDir,
+			"--runThreadN", "4", "--runMode", "genomeGenerate", "--genomeDir", starIdxDir,
 			"--genomeFastaFiles", gc.getFAFilePath(),
 			"--sjdbGTFfile", gc.getGTFFilePath(),
 		}
@@ -109,4 +113,148 @@ func BuildSalmonIndexByKmer(kmer string, gc *GenomeConfig) error {
 func buildSalmonIndexByKmer(kmer string, gc *GenomeConfig, wg *sync.WaitGroup) error {
 	defer wg.Done()
 	return BuildSalmonIndexByKmer(kmer, gc)
+}
+
+// SequencingIndexBuilder is an interface that has methods to build sequencing index
+type SequencingIndexBuilder interface {
+	BuildIndex() error
+	DownloadGenomeFiles() error
+}
+
+// GencodeIndexBuilder builds index for Gencode
+type GencodeIndexBuilder struct {
+	Species, GencodeVersion string
+}
+
+// GenomeAssembly returns the corresponding genome assembly given the species and gencode version
+func (gb *GencodeIndexBuilder) GenomeAssembly() (res string, err error) {
+	genomeAssemblyMapping := map[string]map[string]string{
+		"hs": map[string]string{
+			"30": "GRCh38",
+		},
+		"mm": map[string]string{
+			"M22": "GRCm38",
+		},
+	}
+
+	if subMapping, ok := genomeAssemblyMapping[gb.Species]; ok {
+		if res, ok = subMapping[gb.GencodeVersion]; ok {
+			err = nil
+			return
+		}
+	}
+
+	err = fmt.Errorf("Can't find genome assembly for '%v' of Gencode version '%v'", gb.Species, gb.GencodeVersion)
+	return
+}
+
+// DownloadGenomeFiles implements the interface method
+func (gb *GencodeIndexBuilder) DownloadGenomeFiles() error {
+	genomeAssembly, err := gb.GenomeAssembly() // figure out the genome assembly
+
+	if err != nil {
+		return err
+	}
+
+	log.Printf("Gencode downloading files for genome assembly '%v'\n", genomeAssembly)
+
+	filePrefix := fmt.Sprintf("gencode.v%v", gb.GencodeVersion)
+
+	faFileName := genomeAssembly + ".primary_assembly.genome.fa"
+	gtfFileName := filePrefix + ".primary_assembly.annotation.gtf"
+	txfaFileName := filePrefix + ".transcripts.fa"
+
+	faGZFileName := faFileName + ".gz"
+	gtfGZFileName := gtfFileName + ".gz"
+	txfaGZFileName := txfaFileName + ".gz"
+
+	files2Download := []string{
+		gtfGZFileName,
+		filePrefix + ".polyAs.gtf.gz",
+		filePrefix + ".2wayconspseudos.gtf.gz",
+		filePrefix + ".tRNAs.gtf.gz",
+		txfaGZFileName,
+		faGZFileName,
+	}
+
+	speciesMapping := map[string]string{
+		"hs": "Gencode_human",
+		"mm": "Gencode_mouse",
+	} // map from species short name to full url
+
+	ftpDir := fmt.Sprintf("pub/databases/gencode/%v/release_%v", speciesMapping[gb.Species], strings.ToUpper(gb.GencodeVersion))
+
+	resDir := "gencode_" + gb.Species + "_" + gb.GencodeVersion
+
+	fc := fileutil.FTPDownloadConfig{"ftp.ebi.ac.uk", 21, 3, ftpDir, resDir, files2Download}
+
+	err = fc.Download()
+
+	if err != nil {
+		return err
+	}
+
+	faFilePath := filepath.Join(resDir, faFileName)
+	gtfFilePath := filepath.Join(resDir, gtfFileName)
+	txfaFilePath := filepath.Join(resDir, txfaFileName)
+
+	var wg sync.WaitGroup
+	wg.Add(3) // wait decompressing threads
+
+	// decompress gz files required to build index
+	go decompressGZFile(filepath.Join(resDir, gtfGZFileName), gtfFilePath, &wg)
+	go decompressGZFile(filepath.Join(resDir, faGZFileName), faFilePath, &wg)
+	go decompressGZFile(filepath.Join(resDir, txfaGZFileName), txfaFilePath, &wg)
+
+	wg.Wait()
+
+	fmt.Println("All files downloaded and uncompressed")
+	return nil
+}
+
+// BuildIndex implements SequencingIndexBuilder
+func (gb *GencodeIndexBuilder) BuildIndex() error {
+
+	err := gb.DownloadGenomeFiles() // download genome files before proceeding
+
+	if err != nil {
+		return err
+	}
+
+	gc := GenomeConfig{BaseDir: resDir, FAFileName: faFileName, GTFFileName: gtfFileName, TXFAFileName: txfaFileName}
+
+	var wg sync.WaitGroup
+	wg.Add(2)
+	go func() {
+		defer wg.Done()
+		rnaseq.BuildRNASeqIndex("star", &gc)
+	}()
+
+	go func() {
+		defer wg.Done()
+		rnaseq.BuildRNASeqIndex("salmon", &gc)
+	}()
+
+	wg.Wait()
+	genomeAssembly, err := gb.GenomeAssembly()
+
+	log.Printf("Gencode building index for genome assembly '%v'\n", genomeAssembly)
+
+	return nil
+}
+
+func decompressGZFile(gzFilePath, resFilePath string, wg *sync.WaitGroup) {
+	defer wg.Done()
+	fmt.Println("Unzipping", gzFilePath)
+	fileutil.DecompressGZFile(gzFilePath, resFilePath)
+	fmt.Println("Unzipped to", resFilePath)
+}
+
+// EnsemblIndexBuilder build index for Ensembl
+type EnsemblIndexBuilder struct {
+}
+
+// BuildIndex implements SequencingIndexBuilder
+func (eb *EnsemblIndexBuilder) BuildIndex() error {
+	return nil
 }
