@@ -21,7 +21,7 @@ func main() {
 		indexerRunner = rnaseq.EnsemblIndexerRunner{Species: *speciesPtr, EnsemblVersion: *rVerPtr}
 	}
 
-	err := rnaseq.RunIndexers(indexerRunner, []rnaseq.Algorithm{rnaseq.Salmon})
+	err := rnaseq.RunIndexers(indexerRunner, []rnaseq.Algorithm{rnaseq.STAR, rnaseq.Salmon})
 	if err != nil {
 		log.Fatal(err)
 	}
