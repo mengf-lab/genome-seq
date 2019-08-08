@@ -135,7 +135,7 @@ func (gb GencodeIndexerRunner) RunIndexers(algorithms []Algorithm) error {
 	}
 
 	for _, algo := range algorithms { // for each specified RNA-seq algorithm
-		indexer, err := algo.NewIndexer() // instantiate an indexer
+		indexer, err := algo.NewAlgorithmIndexer() // instantiate an indexer
 		if err != nil {
 			return err
 		}
