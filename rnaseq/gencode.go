@@ -116,34 +116,11 @@ func (gb GencodeIndexerRunner) DownloadGenomeFiles() error {
 	files2Unzip[filepath.Join(resDir, faGZFileName)] = filepath.Join(resDir, faFileName)
 	files2Unzip[filepath.Join(resDir, txfaGZFileName)] = filepath.Join(resDir, txfaFileName)
 
-	log.Println("Gencode unzipping files")
+	log.Println("Gencode decompressing files")
 
 	filenet.DecompressFiles(files2Unzip, 3)
 
-	log.Println("Gencode files unzipped")
-
-	return nil
-}
-
-// RunIndexers implements IndexerRunner
-func (gb GencodeIndexerRunner) RunIndexers(algorithms []Algorithm) error {
-
-	err := gb.DownloadGenomeFiles() // download and uncompress genome files before proceeding
-
-	if err != nil {
-		return err
-	}
-
-	for _, algo := range algorithms { // for each specified RNA-seq algorithm
-		indexer, err := algo.NewAlgorithmIndexer() // instantiate an indexer
-		if err != nil {
-			return err
-		}
-		err = indexer.BuildIndex(gb)
-		if err != nil {
-			return err
-		}
-	}
+	log.Println("Gencode files decompressed")
 
 	return nil
 }

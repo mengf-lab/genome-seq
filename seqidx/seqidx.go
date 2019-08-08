@@ -9,8 +9,8 @@ import (
 
 func main() {
 	// parse command line arguments
-	genomeSourcePtr := flag.String("source", "gencode", "Genome source to build; specify either 'gencode' or 'ensemble'")
-	rVerPtr := flag.String("g", "30", "Genome release version string")
+	genomeSourcePtr := flag.String("source", "gencode", "annotation source, specify either 'gencode' or 'ensembl'")
+	rVerPtr := flag.String("g", "30", "release version")
 	speciesPtr := flag.String("s", "hs", "Species")
 	flag.Parse()
 
@@ -18,10 +18,10 @@ func main() {
 	if *genomeSourcePtr == "gencode" {
 		indexerRunner = rnaseq.GencodeIndexerRunner{Species: *speciesPtr, GencodeVersion: *rVerPtr}
 	} else if *genomeSourcePtr == "ensembl" {
-		//indexerRunner = rnaseq.EnsemblIndexerRunner{Species: *speciesPtr, EnsemblVersion: *rVerPtr}
+		indexerRunner = rnaseq.EnsemblIndexerRunner{Species: *speciesPtr, EnsemblVersion: *rVerPtr}
 	}
 
-	err := indexerRunner.RunIndexers([]rnaseq.Algorithm{rnaseq.STAR})
+	err := rnaseq.RunIndexers(indexerRunner, []rnaseq.Algorithm{rnaseq.Salmon})
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -12,7 +12,6 @@ type IndexerRunner interface {
 	GTFFileName() string
 	TXFAFileName() string
 	DownloadGenomeFiles() error
-	RunIndexers(algorithms []Algorithm) error // invoke actual indexers based on given algorithms
 }
 
 // AlgorithmIndexer is a RNA-seq algorithm interface
@@ -46,4 +45,26 @@ func (algo Algorithm) NewAlgorithmIndexer() (indexer AlgorithmIndexer, err error
 		indexer = nil
 	}
 	return
+}
+
+// RunIndexers invokes each indexer by passing the runner to it
+func RunIndexers(indexerRunner IndexerRunner, algorithms []Algorithm) error {
+	err := indexerRunner.DownloadGenomeFiles() // download and uncompress genome files before proceeding
+
+	if err != nil {
+		return err
+	}
+
+	for _, algo := range algorithms { // for each specified RNA-seq algorithm
+		indexer, err := algo.NewAlgorithmIndexer() // instantiate an indexer
+		if err != nil {
+			return err
+		}
+		err = indexer.BuildIndex(indexerRunner)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
