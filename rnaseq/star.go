@@ -2,7 +2,7 @@ package rnaseq
 
 import (
 	"errors"
-	"fmt"
+	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -29,12 +29,12 @@ func (indexer *STARIndexer) BuildIndex(indexRunner IndexerRunner) error {
 			"--genomeFastaFiles", filepath.Join(indexRunner.BaseDir(), indexRunner.FAFileName()),
 			"--sjdbGTFfile", filepath.Join(indexRunner.BaseDir(), indexRunner.GTFFileName()),
 		}
-		fmt.Println("Running STAR indexing")
+		log.Println("Running STAR indexing")
 		_, err := exec.Command("STAR", starArgs...).Output()
 		if err != nil {
 			return err
 		}
-		fmt.Println("Finished indexing")
+		log.Println("Finished STAR indexing")
 	} else {
 		return err
 	}

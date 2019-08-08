@@ -3,6 +3,7 @@ package rnaseq
 import (
 	"errors"
 	"fmt"
+	"log"
 	"os/exec"
 	"path/filepath"
 	"sync"
@@ -22,7 +23,7 @@ func (indexer *SalmonIndexer) CheckBinary() error {
 
 // BuildIndex for algorithm Salmon
 func (indexer *SalmonIndexer) BuildIndex(gc IndexerRunner) error {
-	fmt.Println("Running Salmon indexing")
+	log.Println("Running Salmon indexing")
 	var wg sync.WaitGroup
 	kmers := [6]string{"21", "23", "25", "27", "29", "31"} // all salmon Ks
 
@@ -32,7 +33,7 @@ func (indexer *SalmonIndexer) BuildIndex(gc IndexerRunner) error {
 	}
 
 	wg.Wait()
-	fmt.Println("Finished Salmon indexing")
+	log.Println("Finished Salmon indexing")
 	return nil
 }
 
@@ -42,12 +43,12 @@ func BuildSalmonIndexByKmer(kmer string, indexRunner IndexerRunner) error {
 	salmonArgs := []string{
 		"index", "-t", filepath.Join(indexRunner.BaseDir(), indexRunner.TXFAFileName()), "-i", salmonIdxDir, "--type", "quasi", "-k", kmer,
 	}
-	fmt.Printf("Salmon indexing k%v\n", kmer)
+	log.Printf("Salmon indexing k%v\n", kmer)
 	_, err := exec.Command("salmon", salmonArgs...).Output()
 	if err != nil {
 		return err
 	}
-	fmt.Println("Finished indexing", kmer)
+	log.Printf("Finished Salmon indexing k%v\n", kmer)
 	return nil
 }
 
