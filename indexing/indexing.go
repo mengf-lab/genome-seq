@@ -2,8 +2,9 @@ package main
 
 import (
 	"flag"
+	"log"
 
-	"github.com/keqiang/genome-seq/seq"
+	"github.com/keqiang/genome-seq/rnaseq"
 )
 
 func main() {
@@ -13,8 +14,15 @@ func main() {
 	speciesPtr := flag.String("s", "hs", "Species")
 	flag.Parse()
 
+	var indexerRunner rnaseq.IndexerRunner
 	if *genomeSourcePtr == "gencode" {
-		indexBuilder := seq.GencodeIndexBuilder{Species: *speciesPtr, GencodeVersion: *rVerPtr}
-		indexBuilder.BuildIndex()
+		indexerRunner = rnaseq.GencodeIndexerRunner{Species: *speciesPtr, GencodeVersion: *rVerPtr}
+	} else if *genomeSourcePtr == "ensembl" {
+		//indexerRunner = rnaseq.EnsemblIndexerRunner{Species: *speciesPtr, EnsemblVersion: *rVerPtr}
+	}
+
+	err := indexerRunner.RunIndexers([]rnaseq.Algorithm{rnaseq.STAR})
+	if err != nil {
+		log.Fatal(err)
 	}
 }
