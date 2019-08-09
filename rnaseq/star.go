@@ -15,7 +15,7 @@ type STARIndexer struct{}
 func (indexer *STARIndexer) CheckBinary() error {
 	_, err := exec.LookPath("STAR") // check if 'STAR' binary is installed in the system
 	if err != nil {
-		return errors.New("Can't find 'STAR' binary on your system; check if it's installed and is added to your PATH variable")
+		return errors.New("Can not locate 'STAR' binary on your system; check if it's installed and is added to your PATH variable")
 	}
 	return nil
 }

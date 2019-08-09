@@ -49,7 +49,7 @@ func (algo Algorithm) NewAlgorithmIndexer() (indexer AlgorithmIndexer, err error
 
 // RunIndexers invokes each indexer by passing the runner to it
 func RunIndexers(indexerRunner IndexerRunner, algorithms []Algorithm) error {
-	err := indexerRunner.DownloadGenomeFiles() // download and uncompress genome files before proceeding
+	err := indexerRunner.DownloadGenomeFiles() // download and decompress genome files before proceeding
 
 	if err != nil {
 		return err

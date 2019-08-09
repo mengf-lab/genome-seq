@@ -16,7 +16,7 @@ type SalmonIndexer struct{}
 func (indexer *SalmonIndexer) CheckBinary() error {
 	_, err := exec.LookPath("salmon") // check if 'salmon' binary is installed in the system
 	if err != nil {
-		return errors.New("Can't find 'salmon' binary on your system; check if it's installed and is added to your PATH variable")
+		return errors.New("Can not locate 'salmon' binary on your system; check if it's installed and is added to your PATH variable")
 	}
 	return nil
 }

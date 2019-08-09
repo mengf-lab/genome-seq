@@ -36,7 +36,7 @@ func (gb GencodeIndexerRunner) GenomeAssembly() string {
 		}
 	}
 
-	log.Fatalf("Can't find genome assembly for '%v' of Gencode version '%v'", gb.Species, gb.GencodeVersion)
+	log.Fatalf("Can not determine genome assembly for '%v' of Gencode version '%v'", gb.Species, gb.GencodeVersion)
 	return ""
 }
 

@@ -50,7 +50,7 @@ func (gb EnsemblIndexerRunner) GenomeAssembly() string {
 		}
 	}
 
-	log.Fatalf("Can't find genome assembly for '%v' of Ensembl version '%v'", gb.Species, gb.EnsemblVersion)
+	log.Fatalf("Can not determine genome assembly for '%v' of Ensembl version '%v'", gb.Species, gb.EnsemblVersion)
 	return ""
 }
 
@@ -70,7 +70,7 @@ func (gb EnsemblIndexerRunner) SpeciesString() string {
 // FAFileName returns the fa file name
 func (gb EnsemblIndexerRunner) FAFileName() string {
 	var faType string
-	if gb.Species == "rn" {
+	if gb.Species == "rn" || gb.Species == "dm" { // rat and fruitfly don't have primary_assembly
 		faType = "toplevel"
 	} else {
 		faType = "primary_assembly"
