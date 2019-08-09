@@ -37,6 +37,7 @@ func main() {
 
   seqidx -a ensembl -r 96 -s dm
     downloads Ensembl files for Fruitfly Ensembl version 96 and build index files`)
+		fmt.Println()
 	}
 
 	flag.Parse()
