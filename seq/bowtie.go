@@ -5,10 +5,12 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+
+	"github.com/keqiang/filenet"
 )
 
 func checkBowtieIndexerAvailability(versionedBowtie string) error {
-	return checkBinary(versionedBowtie + "-build")
+	return filenet.CheckBinaryExistence(versionedBowtie + "-build")
 }
 
 func buildBowtieIndices(versionedBowtie string, genomeAnnotations GenomeAnnotations) error {

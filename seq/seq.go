@@ -1,10 +1,5 @@
 package seq
 
-import (
-	"fmt"
-	"os/exec"
-)
-
 // GenomeAnnotations is a general interface that specifies
 // genome annotation file locations and methods to donload these files
 type GenomeAnnotations interface {
@@ -17,7 +12,7 @@ type GenomeAnnotations interface {
 }
 
 // Algorithm is an interface representing a sequencing algorithm,
-// such as STAR, salmon for RNA-seq or BWA for CHiP-seq
+// such as STAR, Salmon for RNA-seq or BWA for CHiP-seq
 type Algorithm interface {
 	// check if this algorithm's binary is installed on the system
 	CheckIndexerAvailability() error
@@ -47,13 +42,5 @@ func IndexGenomeAnnotations(genomeAnnotations GenomeAnnotations, algorithms []Al
 		}
 	}
 
-	return nil
-}
-
-func checkBinary(binaryName string) error {
-	_, err := exec.LookPath(binaryName) // check if the specified binary is installed in the system
-	if err != nil {
-		return fmt.Errorf("Can not locate '%v' binary on your system; check if it's installed and is added to your PATH variable", binaryName)
-	}
 	return nil
 }

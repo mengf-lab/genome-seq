@@ -7,6 +7,8 @@ import (
 	"os/exec"
 	"path/filepath"
 	"sync"
+
+	"github.com/keqiang/filenet"
 )
 
 // Salmon algorithm
@@ -14,7 +16,7 @@ type Salmon struct{}
 
 // CheckIndexerAvailability returns an error if 'salmon' is not installed
 func (algorithm *Salmon) CheckIndexerAvailability() error {
-	return checkBinary("salmon")
+	return filenet.CheckBinaryExistence("salmon")
 }
 
 // BuildIndices for algorithm Salmon

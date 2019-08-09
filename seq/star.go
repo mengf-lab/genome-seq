@@ -5,6 +5,8 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+
+	"github.com/keqiang/filenet"
 )
 
 // STAR algorithm
@@ -12,7 +14,7 @@ type STAR struct{}
 
 // CheckIndexerAvailability returns an error if 'STAR' is not installed
 func (algorithm *STAR) CheckIndexerAvailability() error {
-	return checkBinary("STAR")
+	return filenet.CheckBinaryExistence("STAR")
 }
 
 // BuildIndices for algorithm STAR

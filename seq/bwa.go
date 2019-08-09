@@ -5,6 +5,8 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+
+	"github.com/keqiang/filenet"
 )
 
 // BWA algorithm
@@ -12,7 +14,7 @@ type BWA struct{}
 
 // CheckIndexerAvailability returns an error if 'bwa' is not installed
 func (algorithm *BWA) CheckIndexerAvailability() error {
-	return checkBinary("bwa")
+	return filenet.CheckBinaryExistence("bwa")
 }
 
 // BuildIndices for algorithm BWA
