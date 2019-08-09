@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"sync"
@@ -44,7 +45,12 @@ func BuildSalmonIndexByKmer(kmer string, indexRunner IndexerRunner) error {
 		"index", "-t", filepath.Join(indexRunner.BaseDir(), indexRunner.TXFAFileName()), "-i", salmonIdxDir, "--type", "quasi", "-k", kmer,
 	}
 	log.Printf("Salmon indexing k%v\n", kmer)
-	_, err := exec.Command("salmon", salmonArgs...).Output()
+	salmonCmd := exec.Command("salmon", salmonArgs...)
+
+	salmonCmd.Stdout = os.Stdout
+	salmonCmd.Stderr = os.Stderr
+	err := salmonCmd.Run()
+
 	if err != nil {
 		return err
 	}

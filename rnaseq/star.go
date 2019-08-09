@@ -25,12 +25,16 @@ func (indexer *STARIndexer) BuildIndex(indexRunner IndexerRunner) error {
 	starIdxDir := filepath.Join(indexRunner.BaseDir(), "star_idx")
 	if err := os.Mkdir(starIdxDir, os.ModePerm); err == nil {
 		starArgs := []string{
-			"--runThreadN", "4", "--runMode", "genomeGenerate", "--genomeDir", starIdxDir,
+			"--runThreadN", "4", "--runMode", "genomeGenerate", "--genomeDir", starIdxDir, "--genomeSAindexNbases", "13",
 			"--genomeFastaFiles", filepath.Join(indexRunner.BaseDir(), indexRunner.FAFileName()),
 			"--sjdbGTFfile", filepath.Join(indexRunner.BaseDir(), indexRunner.GTFFileName()),
 		}
 		log.Println("Running STAR indexing")
-		_, err := exec.Command("STAR", starArgs...).Output()
+		starCmd := exec.Command("STAR", starArgs...)
+
+		starCmd.Stdout = os.Stdout
+		starCmd.Stderr = os.Stderr
+		err := starCmd.Run()
 		if err != nil {
 			return err
 		}
