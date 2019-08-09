@@ -4,20 +4,27 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"os"
 
-	"github.com/keqiang/genome-seq/rnaseq"
+	"github.com/keqiang/genome-seq/seq"
 )
 
 func main() {
+
+	seqType := flag.String("t", "rna", `Sequencing type; specify either "rna" or "chip"`)
 	// parse command line arguments
-	genomeSourcePtr := flag.String("a", "gencode", `Annotation source, specify either "gencode" or "ensembl"`)
+	genomeSourcePtr := flag.String("a", "gencode", `Annotation source; specify either "gencode" or "ensembl"`)
 
-	speciesPtr := flag.String("s", "hs", `Species; Example: specify "hs" for Human; See below for a full list of available species`)
+	speciesPtr := flag.String("s", "hs", `Species; example: specify "hs" for Human; See below for a full list of available species`)
 
-	rVerPtr := flag.String("r", "30", `Annotation source release version; If you specified "gencode" for annotation source flag, then you need to specify version "30" or above for Human and version "M22" or above for Mouse. If you specified "ensembl", then you just need to specify the ensembl release version "96" or above`)
+	rVerPtr := flag.String("r", "30", `Annotation source release version; if you specified "gencode" for annotation source flag, then you need to specify version "30" or above for Human and version "M22" or above for Mouse. If you specified "ensembl", then you just need to specify the ensembl release version "96" or above`)
+
+	filesExisted := flag.Bool("e", false, `Annotation files already exist. You must specify -f as the directory`)
+
+	annotationFileDir := flag.String("d", "", `Directory that contains the genome annotation files`)
 
 	flag.Usage = func() {
-		fmt.Println("Argument list")
+		fmt.Fprintf(flag.CommandLine.Output(), "Usage of %s:\n", os.Args[0])
 		flag.PrintDefaults()
 		fmt.Println()
 		fmt.Print(`Full list of available species
@@ -42,14 +49,34 @@ func main() {
 
 	flag.Parse()
 
-	var indexerRunner rnaseq.IndexerRunner
-	if *genomeSourcePtr == "gencode" {
-		indexerRunner = rnaseq.GencodeIndexerRunner{Species: *speciesPtr, GencodeVersion: *rVerPtr}
-	} else if *genomeSourcePtr == "ensembl" {
-		indexerRunner = rnaseq.EnsemblIndexerRunner{Species: *speciesPtr, EnsemblVersion: *rVerPtr}
+	if *filesExisted { // using existing files
+		if _, err := os.Stat(*annotationFileDir); os.IsNotExist(err) {
+			log.Fatalf("Please use -d to specify an exsiting directory that contains all annotation files needed")
+		}
+	} else {
+		*annotationFileDir = ""
 	}
 
-	err := rnaseq.RunIndexers(indexerRunner, []rnaseq.Algorithm{rnaseq.STAR, rnaseq.Salmon})
+	var genomeAnnotations seq.GenomeAnnotations
+	if *genomeSourcePtr == "gencode" {
+		genomeAnnotations = seq.GencodeGenomeAnnotations{Species: *speciesPtr, Version: *rVerPtr, ExistingBaseDir: *annotationFileDir}
+	} else if *genomeSourcePtr == "ensembl" {
+		genomeAnnotations = seq.EnsemblGenomeAnnotations{Species: *speciesPtr, Version: *rVerPtr, ExistingBaseDir: *annotationFileDir}
+	} else {
+		log.Fatalf("Invalid annotation source '%v'\n", *genomeSourcePtr)
+	}
+
+	algorithms := make([]seq.Algorithm, 0, 3)
+	if *seqType == "rna" {
+		algorithms = append(algorithms, &seq.STAR{}, &seq.Salmon{})
+	} else if *seqType == "chip" {
+		algorithms = append(algorithms, &seq.Bowtie{}, &seq.Bowtie2{}, &seq.BWA{})
+	} else {
+		log.Fatalf("Invalid sequencing type '%v'\n", *seqType)
+	}
+
+	err := seq.IndexGenomeAnnotations(genomeAnnotations, algorithms, *filesExisted)
+
 	if err != nil {
 		log.Fatal(err)
 	}
