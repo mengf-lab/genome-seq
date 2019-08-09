@@ -20,7 +20,7 @@ func (algorithm *STAR) BuildIndices(genomeAnnotations GenomeAnnotations) error {
 	starIdxDir := filepath.Join(genomeAnnotations.BaseDir(), "star_idx")
 	if err := os.Mkdir(starIdxDir, os.ModePerm); err == nil {
 		starArgs := []string{
-			"--runThreadN", "4", "--runMode", "genomeGenerate", "--genomeDir", starIdxDir, "--genomeSAindexNbases", "13",
+			"--runThreadN", "4", "--runMode", "genomeGenerate", "--genomeDir", starIdxDir, "--genomeSAindexNbases", "13", // changed to 13 because there is a warning
 			"--genomeFastaFiles", filepath.Join(genomeAnnotations.BaseDir(), genomeAnnotations.FAFile()),
 			"--sjdbGTFfile", filepath.Join(genomeAnnotations.BaseDir(), genomeAnnotations.GTFFile()),
 		}

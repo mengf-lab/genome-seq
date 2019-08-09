@@ -15,11 +15,11 @@ func main() {
 	// parse command line arguments
 	genomeSourcePtr := flag.String("a", "gencode", `Annotation source; specify either "gencode" or "ensembl"`)
 
-	speciesPtr := flag.String("s", "hs", `Species; example: specify "hs" for Human; See below for a full list of available species`)
+	speciesPtr := flag.String("s", "hs", `Species; specify "hs" for Human; See below for a full list of available species`)
 
-	rVerPtr := flag.String("r", "30", `Annotation source release version; if you specified "gencode" for annotation source flag, then you need to specify version "30" or above for Human and version "M22" or above for Mouse. If you specified "ensembl", then you just need to specify the ensembl release version "96" or above`)
+	rVerPtr := flag.String("r", "30", `Annotation source release version; if you specified "gencode" as the annotation source, you need to specify version "30" or above for Human and version "M22" or above for Mouse. If you specified "ensembl", you just need to specify the ensembl release version "96" or above`)
 
-	filesExisted := flag.Bool("e", false, `Annotation files already exist. You must specify -f as the directory`)
+	filesExisted := flag.Bool("e", false, `Annotation files already exist. You must specify -d as the directory which contains all your annotations files`)
 
 	annotationFileDir := flag.String("d", "", `Directory that contains the genome annotation files`)
 
@@ -37,13 +37,16 @@ func main() {
 		fmt.Println()
 		fmt.Print(`Examples
   seqidx
-    will run using the default values, which is equivalent to seqidx -a gencode -s hs -r 30; this will download Gencode files for Human Gencode version 30 and build index files
+    will run using the default values, which is equivalent to seqidx -t rna -a gencode -s hs -r 30; this will download Gencode annotation files for Human Gencode version 30 and build RNA-seq index files
 
   seqidx -s mm -r M22
-    downloads Gencode files for Mouse Gencode version M22 and build index files
+    downloads Gencode annotation files for Mouse Gencode version M22 and build RNA-seq index files
 
   seqidx -a ensembl -r 96 -s dm
-    downloads Ensembl files for Fruitfly Ensembl version 96 and build index files`)
+    downloads Ensembl annotation files for Fruitfly Ensembl version 96 and build RNA-seq index files
+
+  seqidx -t chip -a ensembl -r 96 -s dm -e -d ensembl_dm_96
+    Using Ensembl annotation files under directory 'ensembl_dm_96' for Fruitfly Ensembl version 96 to build CHiP-seq index files`)
 		fmt.Println()
 	}
 
