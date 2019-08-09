@@ -36,8 +36,7 @@ func main() {
     downloads Gencode files for Mouse Gencode version M22 and build index files
 
   seqidx -a ensembl -r 96 -s dm
-    downloads Ensembl files for Fruitfly Ensembl version 96 and build index files
-		`)
+    downloads Ensembl files for Fruitfly Ensembl version 96 and build index files`)
 	}
 
 	flag.Parse()
