@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/keqiang/filenet"
+	"github.com/keqiang/filenet/ftp"
 )
 
 // GencodeGenomeAnnotations contains file information for gencode annotations
@@ -97,14 +98,7 @@ func (gb GencodeGenomeAnnotations) DownloadAnnotationFiles() error {
 
 	resDir := "gencode_" + gb.Species + "_" + gb.Version
 
-	fc := filenet.FTPDownloadConfig{
-		URL:            "ftp.ebi.ac.uk",
-		Port:           21,
-		MaxConnection:  3,
-		BaseDir:        ftpDir,
-		DestDir:        resDir,
-		Files2Download: files2Download,
-	}
+	fc := ftp.NewDownloadConfig("ftp.ebi.ac.uk", ftpDir, resDir, files2Download)
 
 	err := fc.Download()
 

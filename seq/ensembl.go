@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/keqiang/filenet"
+	"github.com/keqiang/filenet/ftp"
 )
 
 // EnsemblGenomeAnnotations build index for Ensembl
@@ -115,14 +116,7 @@ func (gb EnsemblGenomeAnnotations) DownloadAnnotationFiles() error {
 
 	resDir := "ensembl_" + gb.Species + "_" + gb.Version
 
-	fc := filenet.FTPDownloadConfig{
-		URL:            "ftp.ensembl.org",
-		Port:           21,
-		MaxConnection:  3,
-		BaseDir:        ftpDir,
-		DestDir:        resDir,
-		Files2Download: files2Download,
-	}
+	fc := ftp.NewDownloadConfig("ftp.ensembl.org", ftpDir, resDir, files2Download)
 
 	err := fc.Download()
 
