@@ -25,11 +25,11 @@ func (algorithm *BWA) BuildIndices(genomeAnnotations GenomeAnnotations) error {
 			"index", "-a", "bwtsw", "-p", filepath.Join(bwaIdxDir, "bwa_idx"), filepath.Join(genomeAnnotations.BaseDir(), genomeAnnotations.FAFile()),
 		}
 		log.Println("Running BWA indexing")
-		starCmd := exec.Command("bwa", bwaArgs...)
+		bwaCmd := exec.Command("bwa", bwaArgs...)
 
-		starCmd.Stdout = os.Stdout
-		starCmd.Stderr = os.Stderr
-		err := starCmd.Run()
+		bwaCmd.Stdout = os.Stdout
+		bwaCmd.Stderr = os.Stderr
+		err := bwaCmd.Run()
 		if err != nil {
 			return err
 		}

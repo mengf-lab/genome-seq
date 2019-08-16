@@ -20,11 +20,11 @@ func buildBowtieIndices(versionedBowtie string, genomeAnnotations GenomeAnnotati
 			"-f", filepath.Join(genomeAnnotations.BaseDir(), genomeAnnotations.FAFile()), filepath.Join(bowtieIdxDir, versionedBowtie+"_idx"),
 		}
 		log.Println("Running", versionedBowtie, "indexing")
-		starCmd := exec.Command(versionedBowtie+"-build", bowtieArgs...)
+		bowtieCmd := exec.Command(versionedBowtie+"-build", bowtieArgs...)
 
-		starCmd.Stdout = os.Stdout
-		starCmd.Stderr = os.Stderr
-		err := starCmd.Run()
+		bowtieCmd.Stdout = os.Stdout
+		bowtieCmd.Stderr = os.Stderr
+		err := bowtieCmd.Run()
 		if err != nil {
 			return err
 		}
