@@ -1,12 +1,13 @@
 package main
 
 import (
+	"bufio"
 	"flag"
 	"fmt"
 	"log"
 	"os"
-	"os/exec"
 	"path/filepath"
+	"strings"
 
 	"github.com/keqiang/filenet"
 	"github.com/keqiang/filenet/ftp"
@@ -85,17 +86,37 @@ func main() {
 	}
 }
 
-func writeSpeciesAnnotationFile(annotationFile, resDir, species, speciesFullName string) error {
-	speciesAnnotationFile, err := os.Create(filepath.Join(resDir, species+".fa"))
+func writeSpeciesAnnotationFile(annotationFilePath, resDir, species, speciesFullName string) error {
+	speciesAnnotationFile, err := os.Create(filepath.Join(resDir, species+".fa")) // create the species's fa file such 'hs.fa'
 	if err != nil {
 		return err
 	}
 	defer speciesAnnotationFile.Close()
-	args := []string{"-A", "1", speciesFullName, annotationFile}
-	cmd := exec.Command("grep", args...)
-	cmd.Stdout = speciesAnnotationFile
-	cmd.Stderr = os.Stderr
 
-	err = cmd.Run()
-	return err
+	w := bufio.NewWriter(speciesAnnotationFile)
+	defer w.Flush()
+
+	annotationFile, err := os.Open(annotationFilePath) // open the mature.fa file
+	if err != nil {
+		return err
+	}
+	defer annotationFile.Close()
+
+	s := bufio.NewScanner(annotationFile)
+	for s.Scan() { // scan mature.fa line by line
+		str := s.Text()
+		if strings.HasPrefix(str, ">") && strings.Contains(str, speciesFullName) { // ID line starts with a '>' sign and also contains the species's full name such as 'Homo Sapiens'
+			_, err := w.WriteString(str + "\n")
+			if err != nil {
+				return err
+			}
+			if s.Scan() {
+				nextLine := s.Text()
+				replacedStr := strings.ReplaceAll(nextLine, "U", "T") // replace all U with T
+				w.WriteString(replacedStr + "\n")
+			}
+		}
+	}
+
+	return s.Err()
 }
