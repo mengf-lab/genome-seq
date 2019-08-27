@@ -32,7 +32,7 @@ func main() {
 		fmt.Println()
 		fmt.Print(`Examples
   mirna
-    run using the default values, which is equivalent to mirna -s all -r 21; this will download annotation files for version 22 and extract all species
+    run using the default values, which is equivalent to mirna -s all -r 21; this will download annotation files for version 21 and extract all species
 
   mirna -r 22 -s hs
     downloads version 22 and only extracts human annotations`)
