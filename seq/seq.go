@@ -12,7 +12,7 @@ type GenomeAnnotations interface {
 }
 
 // Algorithm is an interface representing a sequencing algorithm,
-// such as STAR, Salmon for RNA-seq or BWA for CHiP-seq
+// such as STAR, Salmon for RNA-seq or BWA for ChIP-seq
 type Algorithm interface {
 	// check if this algorithm's binary is installed on the system
 	CheckIndexerAvailability() error

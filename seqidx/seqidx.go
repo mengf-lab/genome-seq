@@ -44,7 +44,7 @@ func main() {
     downloads Ensembl annotation files for Fruitfly Ensembl version 96 and build RNA-seq index files
 
   seqidx -t chip -a ensembl -r 96 -s dm -d ensembl_dm_96
-    use existing Ensembl annotation files under directory 'ensembl_dm_96' for Fruitfly Ensembl version 96 to build CHiP-seq index files`)
+    use existing Ensembl annotation files under directory 'ensembl_dm_96' for Fruitfly Ensembl version 96 to build ChIP-seq index files`)
 		fmt.Println()
 	}
 
